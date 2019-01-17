@@ -38,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('-n', '--count', dest='count', action='store', type=int, default=-1, help='stop capturing after this many packets')
     parser.add_argument('-w', '--wait', dest='txsleep', action='store', type=int, default=2, help='wait time between packets in seconds')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='verbose output - display summary while saving packets')
+    parser.add_argument('-l', '--loop', dest='loop', action='store', type=int, default=1, help='replay this many times (default 1)')
 
     args = parser.parse_args()
 
@@ -56,28 +57,42 @@ if __name__ == "__main__":
         print >>sys.stderr, "Must specify an input file with -r"
         sys.exit(1)
 
-    pr = PcapReader(args.rpcapfile)
     kz = KillerZee(countrycode=args.countrycode,rfprofile=args.rfprofile)
 
     print("zwreplay: retransmitting frames from \'{0}\' with a delay of {1} seconds.".format(args.rpcapfile, args.txsleep))
 
-    while not sigstop and args.count != packetcount:
-        try:
-            p = pr.pcap_next()
-        except EOFError:
-            break
+    loop_total=0
+    while loop_total < args.loop:
+        packetcount=0
+        pr = PcapReader(args.rpcapfile)
+        if args.verbose:
+            print "loop {}".format(loop_total),
 
-        packet = p[1]
-        # Check FCS on packet, and make sure it's not an ACK
-        if calcfcs_r1(packet) != 0: # Check FCS, not safe for R3!
-            continue
+        while not sigstop and args.count != packetcount:
+            try:
+                p = pr.pcap_next()
+            except EOFError:
+                break
 
-        if check_ack(packet) == True:
-            continue
-        kz.inject(packet[0:-1]) # Without FCS
-        packetcount+=1
-        time.sleep(args.txsleep)
+            packet = p[1]
+            # Check FCS on packet, and make sure it's not an ACK
+            if calcfcs_r1(packet) != 0: # Check FCS, not safe for R3!
+                continue
 
+            if check_ack(packet) == True:
+                continue
+            kz.inject(packet[0:-1]) # Without FCS
+            if args.verbose:
+                sys.stdout.write('.')
+                sys.stdout.flush()
 
-    pr.close()
-    print "Transmitted %d packets."%packetcount
+            packetcount+=1
+            time.sleep(args.txsleep)
+
+        if args.verbose: print
+        pr.close()
+        loop_total+=1
+
+    kz.close() # This method currently does nothing...
+
+    print "Transmitted {0} packets times {1} loop(s).".format(packetcount, loop_total)
