@@ -1,0 +1,12 @@
+#!/bin/sh
+# this tool is intended to be used to merge two pcap files genrates by zwdump and readable y zwreplay
+# usage is like cat:
+# zwcat.sh file [file2] [file3 ...] >destination
+# dump first file directly with pcap header
+cat "$1"
+# dump all other files without pcapheader
+shift
+for file in "$@" ; do
+    # PCAPHLEN is 24 bytes in pcapdump.py 
+    dd if="$file" bs=1 skip=24 status=none
+done

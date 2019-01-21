@@ -37,6 +37,6 @@ setup  (name        = 'killerzee',
         packages  = ['killerzee'],
         requires = ['rflib'],
         scripts = ['tools/zwdump', 'tools/zwreplay', 'tools/zwpoweroff',
-            'tools/zwthermostatctrl', 'tools/zwthermostattemp' ]
+            'tools/zwthermostatctrl', 'tools/zwthermostattemp', 'tools/zwcat' ]
         )
 
