@@ -97,4 +97,4 @@ if __name__ == "__main__":
 
     kz.close() # This method currently does nothing...
 
-    print "Transmitted {0} packets times {1} loop(s).".format(packetcount, loop_total)
+    if not sigstop: print "Transmitted {0} packets times {1} loop(s).".format(packetcount, loop_total)
