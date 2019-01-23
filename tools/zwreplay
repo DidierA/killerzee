@@ -27,7 +27,7 @@ def check_ack(packet):
 
 if __name__ == "__main__":
     pr = None
-    signal(SIGINT, sighandler)
+
     packetcount=0
 
     # Command-line arguments
@@ -61,8 +61,10 @@ if __name__ == "__main__":
 
     print("zwreplay: retransmitting frames from \'{0}\' with a delay of {1} seconds.".format(args.rpcapfile, args.txsleep))
 
+    signal(SIGINT, sighandler)
     loop_total=0
-    while loop_total < args.loop:
+    
+    while not sigstop and loop_total < args.loop:
         packetcount=0
         pr = PcapReader(args.rpcapfile)
         if args.verbose:
